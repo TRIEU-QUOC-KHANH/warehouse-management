@@ -1,0 +1,86 @@
+const express = require("express");
+const path = require("path");
+const mysql = require("mysql2");
+
+const app = express();
+const PORT = 3000;
+
+// Cho phép đọc dữ liệu JSON
+app.use(express.json());
+
+// Kết nối MySQL
+const db = mysql.createConnection({
+    host: "localhost",
+    port: 3307,
+    user: "root",
+    password: "root123456",
+    database: "warehouse_db"
+});
+
+// Kiểm tra kết nối MySQL
+db.connect((err) => {
+    if (err) {
+        console.error("Lỗi kết nối MySQL:", err);
+        return;
+    }
+
+    console.log("Đã kết nối MySQL thành công!");
+});
+
+// Hiển thị giao diện
+app.use(express.static(path.join(__dirname, "../../public")));
+
+// API kiểm tra database
+app.get("/api/products", (req, res) => {
+    const sql = "SELECT * FROM products";
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({
+                error: "Không thể lấy dữ liệu sản phẩm"
+            });
+        }
+
+        res.json(results);
+    });
+});
+app.post("/api/products", (req, res) => {
+    const { name, quantity } = req.body;
+
+    if (!name || !Number.isInteger(quantity) || quantity <= 0) {
+        return res.status(400).json({
+            error: "Dữ liệu sản phẩm không hợp lệ"
+        });
+    }
+
+    const sql = `
+        INSERT INTO products
+        (product_code, product_name, unit, quantity)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    const productCode = "SP" + Date.now();
+    const unit = "Cái";
+
+    db.query(
+        sql,
+        [productCode, name, unit, quantity],
+        (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({
+                    error: "Không thể thêm sản phẩm"
+                });
+            }
+
+            res.status(201).json({
+                message: "Thêm sản phẩm thành công",
+                id: result.insertId
+            });
+        }
+    );
+});
+app.listen(PORT, () => {
+    console.log(`Server đang chạy tại http://localhost:${PORT}`);
+});

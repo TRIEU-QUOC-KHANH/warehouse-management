@@ -1,0 +1,20 @@
+CREATE DATABASE IF NOT EXISTS warehouse_db;
+
+USE warehouse_db;
+
+CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_code VARCHAR(50) NOT NULL UNIQUE,
+    product_name VARCHAR(255) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    quantity INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE warehouses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    warehouse_code VARCHAR(50) NOT NULL UNIQUE,
+    warehouse_name VARCHAR(255) NOT NULL,
+    location VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
