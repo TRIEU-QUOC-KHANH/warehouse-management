@@ -3,20 +3,23 @@ const path = require("path");
 const mysql = require("mysql2");
 
 const app = express();
+app.disable('x-powered-by');
+
 const PORT = 3000;
 
 // Cho phép đọc dữ liệu JSON
 app.use(express.json());
-
+if (!process.env.DB_PASSWORD) {
+    throw new Error("Thiếu biến môi trường DB_PASSWORD");
+}
 // Kết nối MySQL
 const db = mysql.createConnection({
-    host: "localhost",
-    port: 3307,
-    user: "root",
-    password: "root123456",
-    database: "warehouse_db"
+    host: process.env.DB_HOST || "localhost",
+    port: Number(process.env.DB_PORT || 3307),
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || "warehouse_db"
 });
-
 // Kiểm tra kết nối MySQL
 db.connect((err) => {
     if (err) {
