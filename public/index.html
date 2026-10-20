@@ -1,63 +1,491 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý kho hàng</title>
+    <title>Hệ Thống Quản Lý Kho Hàng (WMS)</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <header>
-        <h1>HỆ THỐNG QUẢN LÝ KHO HÀNG</h1>
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <span class="brand-icon">📦</span>
+                <div>
+                    <h1 class="brand-title">WAREHOUSE MS</h1>
+                    <span class="brand-subtitle">Hệ Thống Quản Lý Kho Thông Minh</span>
+                </div>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-btn active" onclick="switchTab('dashboard')">
+                    📊 Tổng quan
+                </button>
+                <button class="nav-btn" onclick="switchTab('products')">
+                    📦 Sản phẩm
+                </button>
+                <button class="nav-btn" onclick="switchTab('warehouses')">
+                    🏢 Kho hàng
+                </button>
+                <button class="nav-btn" onclick="switchTab('inout')">
+                    🔄 Nhập / Xuất kho
+                </button>
+                <button class="nav-btn" onclick="switchTab('history')">
+                    📜 Lịch sử giao dịch
+                </button>
+            </nav>
+            <div class="system-status">
+                <span class="status-indicator"></span>
+                <span>Hệ thống hoạt động</span>
+            </div>
+        </div>
     </header>
 
-    <main>
-        <h2>Tổng quan kho hàng</h2>
+    <!-- Main Content Container -->
+    <main class="main-container">
 
-        <div class="dashboard">
+        <!-- TAB 1: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content active">
+            <div class="section-header">
+                <h2>Tổng quan hệ thống kho</h2>
+                <button class="btn btn-secondary btn-sm" onclick="loadDashboard()">🔄 Làm mới</button>
+            </div>
+
+            <!-- Stats KPI Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-blue">📦</div>
+                    <div class="stat-info">
+                        <span class="stat-title">Tổng loại sản phẩm</span>
+                        <h3 id="dashTotalProducts">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-purple">🏢</div>
+                    <div class="stat-info">
+                        <span class="stat-title">Tổng số kho đang hoạt động</span>
+                        <h3 id="dashTotalWarehouses">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-green">📊</div>
+                    <div class="stat-info">
+                        <span class="stat-title">Tổng số lượng tồn kho</span>
+                        <h3 id="dashTotalStock">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card stat-alert">
+                    <div class="stat-icon icon-red">⚠️</div>
+                    <div class="stat-info">
+                        <span class="stat-title">Hàng sắp hết / dưới định mức</span>
+                        <h3 id="dashLowStockCount">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Split Layout -->
+            <div class="dashboard-grid">
+                <!-- Cảnh báo thiếu hàng -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>⚠️ Cảnh báo hàng sắp hết định mức</h3>
+                        <span class="badge badge-warning">Cần nhập thêm</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Mã SP</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Đơn vị</th>
+                                    <th>Tồn hiện tại</th>
+                                    <th>Định mức</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashLowStockList">
+                                <tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Giao dịch gần nhất -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🕒 Hoạt động xuất / nhập gần đây</h3>
+                        <button class="btn btn-link" onclick="switchTab('history')">Xem tất cả</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Mã phiếu</th>
+                                    <th>Loại</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Kho</th>
+                                    <th>Số lượng</th>
+                                    <th>Thời gian</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashRecentTxList">
+                                <tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: PRODUCTS -->
+        <section id="tab-products" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>Quản lý danh mục & sản phẩm</h2>
+                    <p class="subtitle">Danh sách các mặt hàng lưu kho, đơn giá và ngưỡng cảnh báo tồn</p>
+                </div>
+                <button class="btn btn-primary" onclick="openProductModal()">+ Thêm sản phẩm</button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-bar">
+                <div class="search-box">
+                    <input type="text" id="productSearchInput" placeholder="Tìm theo mã SP hoặc tên sản phẩm..." oninput="debounceSearchProducts()">
+                </div>
+                <div class="filter-group">
+                    <select id="productFilterCategory" onchange="loadProducts()">
+                        <option value="">Tất cả danh mục</option>
+                    </select>
+                    <select id="productFilterStock" onchange="loadProducts()">
+                        <option value="">Tất cả trạng thái tồn</option>
+                        <option value="low">Sắp hết / Hết hàng</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Products Table -->
             <div class="card">
-                <h3>Tổng sản phẩm</h3>
-                <p id="totalProducts">0</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã SP</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Danh mục</th>
+                                <th>ĐVT</th>
+                                <th>Đơn giá</th>
+                                <th>Tồn kho</th>
+                                <th>Định mức tối thiểu</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productList">
+                            <tr><td colspan="10" class="text-center text-muted">Đang tải danh sách...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: WAREHOUSES -->
+        <section id="tab-warehouses" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>Quản lý các điểm kho hàng</h2>
+                    <p class="subtitle">Danh sách mạng lưới kho lưu trữ và sức chứa</p>
+                </div>
+                <button class="btn btn-primary" onclick="openWarehouseModal()">+ Thêm kho mới</button>
+            </div>
+
+            <div class="warehouses-grid" id="warehousesGrid">
+                <!-- Dynamically loaded warehouse cards -->
+            </div>
+        </section>
+
+        <!-- TAB 4: INBOUND / OUTBOUND TRANSACTIONS -->
+        <section id="tab-inout" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>Nghiệp vụ Nhập & Xuất kho</h2>
+                    <p class="subtitle">Lập phiếu nhập hàng tăng tồn kho hoặc xuất hàng giảm tồn kho có kiểm soát</p>
+                </div>
+            </div>
+
+            <div class="inout-forms-grid">
+                <!-- Form Nhập kho -->
+                <div class="card inout-card import-card">
+                    <div class="card-header inout-header">
+                        <h3>📥 LẬP PHIẾU NHẬP KHO (INBOUND)</h3>
+                        <span class="badge badge-success">Cộng tồn kho</span>
+                    </div>
+                    <form id="importForm" onsubmit="handleImportSubmit(event)">
+                        <div class="form-group">
+                            <label>Chọn kho nhập <span class="required">*</span></label>
+                            <select id="importWarehouseSelect" required>
+                                <option value="">-- Chọn kho tiếp nhận --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Chọn sản phẩm <span class="required">*</span></label>
+                            <select id="importProductSelect" required onchange="handleImportProductChange()">
+                                <option value="">-- Chọn sản phẩm --</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Số lượng nhập <span class="required">*</span></label>
+                                <input type="number" id="importQuantity" min="1" step="1" placeholder="Ví dụ: 100" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Đơn giá nhập (VNĐ)</label>
+                                <input type="number" id="importPrice" min="0" step="1000" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Số hóa đơn / Chứng từ gốc</label>
+                            <input type="text" id="importDoc" placeholder="Ví dụ: HD-2026/0129">
+                        </div>
+                        <div class="form-group">
+                            <label>Ghi chú lý do nhập</label>
+                            <textarea id="importNotes" rows="2" placeholder="Nhập từ nhà cung cấp..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block">
+                            📥 Xác nhận Nhập Kho
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Form Xuất kho -->
+                <div class="card inout-card export-card">
+                    <div class="card-header inout-header">
+                        <h3>📤 LẬP PHIẾU XUẤT KHO (OUTBOUND)</h3>
+                        <span class="badge badge-danger">Trừ tồn kho</span>
+                    </div>
+                    <form id="exportForm" onsubmit="handleExportSubmit(event)">
+                        <div class="form-group">
+                            <label>Chọn kho xuất <span class="required">*</span></label>
+                            <select id="exportWarehouseSelect" required onchange="updateExportStockNotice()">
+                                <option value="">-- Chọn kho xuất hàng --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Chọn sản phẩm <span class="required">*</span></label>
+                            <select id="exportProductSelect" required onchange="updateExportStockNotice()">
+                                <option value="">-- Chọn sản phẩm xuất --</option>
+                            </select>
+                        </div>
+                        <div class="stock-notice" id="exportStockNotice">
+                            ℹ️ Vui lòng chọn kho và sản phẩm để kiểm tra tồn kho hiện có.
+                        </div>
+                        <div class="form-group">
+                            <label>Số lượng xuất <span class="required">*</span></label>
+                            <input type="number" id="exportQuantity" min="1" step="1" placeholder="Ví dụ: 20" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Số lệnh xuất / Chứng từ giao hàng</label>
+                            <input type="text" id="exportDoc" placeholder="Ví dụ: XK-2026/88">
+                        </div>
+                        <div class="form-group">
+                            <label>Ghi chú lý do xuất</label>
+                            <textarea id="exportNotes" rows="2" placeholder="Xuất bán đại lý, chuyển hàng..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-block">
+                            📤 Xác nhận Xuất Kho
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: TRANSACTION HISTORY -->
+        <section id="tab-history" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>Nhật ký & Lịch sử Nhập / Xuất kho</h2>
+                    <p class="subtitle">Toàn bộ vết giao dịch luân chuyển hàng hóa trong hệ thống</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="loadTransactions()">🔄 Làm mới</button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <select id="historyFilterType" onchange="loadTransactions()">
+                        <option value="">Tất cả loại giao dịch</option>
+                        <option value="IMPORT">Chỉ Nhập Kho (IMPORT)</option>
+                        <option value="EXPORT">Chỉ Xuất Kho (EXPORT)</option>
+                    </select>
+                    <select id="historyFilterWarehouse" onchange="loadTransactions()">
+                        <option value="">Tất cả các kho</option>
+                    </select>
+                </div>
             </div>
 
             <div class="card">
-                <h3>Tổng số kho</h3>
-                <p id="totalWarehouses">0</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Mã phiếu</th>
+                                <th>Loại</th>
+                                <th>Mã SP</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Kho thực hiện</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Chứng từ</th>
+                                <th>Ghi chú</th>
+                                <th>Người tạo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionList">
+                            <tr><td colspan="11" class="text-center text-muted">Đang tải lịch sử...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+        </section>
 
-            <div class="card">
-                <h3>Tổng tồn kho</h3>
-                <p id="totalStock">0</p>
-            </div>
-        </div>
-
-        <h2>Danh sách sản phẩm</h2>
-
-        <div class="form">
-            <input type="text" id="productName"
-                   placeholder="Tên sản phẩm">
-
-            <input type="number" id="productQuantity"
-                   placeholder="Số lượng">
-
-            <button onclick="addProduct()">Thêm sản phẩm</button>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Số lượng</th>
-                </tr>
-            </thead>
-
-            <tbody id="productList">
-            </tbody>
-        </table>
     </main>
+
+    <!-- MODAL: Thêm / Sửa Sản phẩm -->
+    <div id="productModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="productModalTitle">Thêm sản phẩm mới</h3>
+                <button class="modal-close" onclick="closeProductModal()">&times;</button>
+            </div>
+            <form id="productForm" onsubmit="handleProductSubmit(event)">
+                <input type="hidden" id="modalProductId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mã sản phẩm (Để trống sẽ tự sinh)</label>
+                        <input type="text" id="modalProductCode" placeholder="Ví dụ: SP-LAPTOP01">
+                    </div>
+                    <div class="form-group">
+                        <label>Danh mục</label>
+                        <input type="text" id="modalProductCategory" placeholder="Ví dụ: Điện tử, Gia dụng..." value="Hàng hóa chung">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Tên sản phẩm <span class="required">*</span></label>
+                    <input type="text" id="modalProductName" placeholder="Ví dụ: Màn hình Dell 24 inch" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Đơn vị tính <span class="required">*</span></label>
+                        <input type="text" id="modalProductUnit" placeholder="Cái, Thùng, Hộp, Kg..." value="Cái" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Đơn giá (VNĐ)</label>
+                        <input type="number" id="modalProductPrice" min="0" step="1000" placeholder="0" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" id="modalInitialQtyGroup">
+                        <label>Số lượng tồn ban đầu</label>
+                        <input type="number" id="modalProductQuantity" min="0" step="1" placeholder="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Định mức tồn tối thiểu (Cảnh báo)</label>
+                        <input type="number" id="modalProductMinStock" min="0" step="1" placeholder="10" value="10">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Mô tả chi tiết</label>
+                    <textarea id="modalProductDesc" rows="2" placeholder="Ghi chú cấu hình, quy cách đóng gói..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="modalProductSubmitBtn">Lưu sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Thêm / Sửa Kho hàng -->
+    <div id="warehouseModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="warehouseModalTitle">Thêm kho hàng mới</h3>
+                <button class="modal-close" onclick="closeWarehouseModal()">&times;</button>
+            </div>
+            <form id="warehouseForm" onsubmit="handleWarehouseSubmit(event)">
+                <input type="hidden" id="modalWarehouseId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mã kho (Để trống sẽ tự sinh)</label>
+                        <input type="text" id="modalWarehouseCode" placeholder="Ví dụ: KHO-HAIPHONG">
+                    </div>
+                    <div class="form-group">
+                        <label>Trạng thái</label>
+                        <select id="modalWarehouseStatus">
+                            <option value="ACTIVE">Hoạt động (ACTIVE)</option>
+                            <option value="INACTIVE">Tạm ngưng (INACTIVE)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Tên kho hàng <span class="required">*</span></label>
+                    <input type="text" id="modalWarehouseName" placeholder="Ví dụ: Kho Chi Nhánh Hải Phòng" required>
+                </div>
+                <div class="form-group">
+                    <label>Địa chỉ vị trí kho</label>
+                    <input type="text" id="modalWarehouseLocation" placeholder="KCN Đình Vũ, Hải Phòng...">
+                </div>
+                <div class="form-group">
+                    <label>Sức chứa tối đa (sản phẩm)</label>
+                    <input type="number" id="modalWarehouseCapacity" min="1" step="1" value="20000">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeWarehouseModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu kho</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Xem tồn kho chi tiết trong kho -->
+    <div id="stockDetailModal" class="modal-overlay">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h3 id="stockDetailModalTitle">Chi tiết tồn kho</h3>
+                <button class="modal-close" onclick="closeStockDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã SP</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Danh mục</th>
+                                <th>Số lượng tồn</th>
+                                <th>ĐVT</th>
+                                <th>Lần cập nhật cuối</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockDetailList">
+                            <tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeStockDetailModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="script.js"></script>
 </body>
